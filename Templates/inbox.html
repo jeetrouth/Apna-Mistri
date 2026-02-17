@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ApnaMistri | Inbox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inbox.css') }}">
+</head>
+<script src="{{ url_for('static', filename='js/inbox.js') }}"></script>
+<body>
+
+<!-- ================= SOLID HEADER ================= -->
+<header class="topbar">
+    <div class="logo-section">
+        <!-- Logo Image -->
+        <img src="{{ url_for('static', filename='images/logo.jpeg') }}" class="brand-logo">
+        <span class="brand-name">ApnaMistri</span>
+    </div>
+    <div class="nav-links">
+        <a href="#">Dashboard</a>
+        <a href="#">Logout</a>
+        <button id="themeToggle" class="theme-btn">🌙</button>
+    </div>
+</header>
+
+<!-- ================= BACKGROUND SECTION ================= -->
+<section class="background-section">
+
+    <!-- Floating Glass Card -->
+    <div class="glass-card">
+        <!-- Page Heading -->
+        <div class="page-header">
+            <h2>Inbox</h2>
+        </div>
+
+        <div class="main-layout">
+
+            <!-- ================= SIDEBAR ================= -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <select>
+                        <option>All Conversations</option>
+                        <option>Unread</option>
+                        <option>Active</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+
+                <div class="worker-card active">
+                   <img src="{{ url_for('static', filename='images/worker-photo.jpeg') }}" class="avatar">
+
+                    <div>
+                        <h4>Worker Name</h4>
+                        <p>Worker Role</p>
+                        <span>Last message preview...</span>
+                    </div>
+                </div>
+
+                <div class="worker-card">
+                    <img src="{{ url_for('static', filename='images/worker-photo.jpeg') }}" class="avatar">
+
+                    <div>
+                        <h4>Worker Name</h4>
+                        <p>Worker Role</p>
+                        <span>Last message preview...</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ================= CHAT PANEL ================= -->
+            <div class="chat-panel">
+
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="chat-user">
+                        <img src="{{ url_for('static', filename='images/worker-photo.jpeg') }}" class="avatar">
+
+                        <div>
+                            <h3>Worker Name</h3>
+                            <p>Worker Role • ★ 4.5</p>
+                        </div>
+                    </div>
+                    <!-- GREEN BOOK BUTTON -->
+                    <button class="book-btn">Book Now</button>
+                </div>
+
+                <!-- Messages -->
+                <div class="chat-messages">
+                    <div class="message left">
+                        <div class="bubble">
+                            Hello, I will arrive in 30 minutes.
+                        </div>
+                        <span>2:30 PM</span>
+                    </div>
+
+                    <div class="message right">
+                        <div class="bubble">
+                            Okay, thank you!
+                        </div>
+                        <span>2:31 PM</span>
+                    </div>
+
+                    <div class="message left">
+                        <div class="bubble">
+                            Please keep tools ready.
+                        </div>
+                        <span>2:32 PM</span>
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div class="chat-input">
+                    <input type="text" placeholder="Type your message...">
+                    <!-- BLUE SEND BUTTON -->
+                    <button class="send-btn">Send</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+</body>
+</html>
