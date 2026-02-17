@@ -12,7 +12,8 @@
       <button class="btn ghost" aria-label="About us">About Us</button>
       <button class="btn ghost" aria-label="How it works">How it works</button>
       {% if user %}
-      <button class="btn ghost" aria-label="Dashboard" onclick="window.location.href='/dashboard'">Dashboard</button>
+      <button class="btn ghost" aria-label="logout" onclick="window.location.href='/logout'">Logout</button>
+      <button class="btn primary" aria-label="Dashboard" onclick="window.location.href='/dashboard'">Dashboard</button>
       {% endif %}
       {% if not user %}
       <button class="btn primary" aria-label="Get Started" onclick="window.location.href='/getstarted'">Get Started</button>

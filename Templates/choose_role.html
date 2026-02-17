@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Choose Your Role | ApnaMistri</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
+{% block content %}
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/choose_role.css') }}">
-</head>
+<title>Choose Your Role | ApnaMistri</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/choose_role.css') }}">
+
 <body>
 
     <!-- TOPBAR -->
@@ -28,17 +25,17 @@
             <div class="role-options">
 
                 <!-- CUSTOMER CARD -->
-                <div class="role-card customer" onclick="selectRole('customer')">
+                <div class="role-card customer" >
                     <div class="icon">👥</div>
                     <h3>I want to HIRE</h3>
-                    <p class="role-label">Customer</p>
+                    <p class="role-label" value="customer">Customer</p>
                 </div>
 
                 <!-- WORKER CARD -->
-                <div class="role-card worker" onclick="selectRole('worker')">
+                <div class="role-card worker" >
                     <div class="icon">🛠</div>
                     <h3>I want to WORK</h3>
-                    <p class="role-label">Worker</p>
+                    <p class="role-label" value="worker">Worker</p>
                 </div>
 
             </div>
@@ -50,4 +47,4 @@
     <script src="{{ url_for('static', filename='js/choose_role.js') }}"></script>
 
 </body>
-</html>
+{% endblock %}

@@ -51,6 +51,11 @@ def get_user_by_uid(uid):
     doc = db.collection("users").document(uid).get()
     return doc.to_dict() if doc.exists else None
 
+def update_role(uid, role):
+    db.collection("users").document(uid).update({
+        "role": role,
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
 def update_user_profile(uid,data):
     
     db.collection("users").document(uid).update({
@@ -60,3 +65,21 @@ def update_user_profile(uid,data):
         "address": data["address"],
         "updatedAt": firestore.SERVER_TIMESTAMP
     })
+def create_worker_profile(uid,data):
+    db.collection("workers").document(uid).set({
+        "name": data["name"],
+        "phone": data["phone"],
+        "email": data["email"],
+        "address": data["address"],
+        "skills": data["skills"],
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
+def update_worker_profile(uid,data):
+    db.collection("workers").document(uid).update({
+        "name": data["name"],
+        "phone": data["phone"],
+        "email": data["email"],
+        "address": data["address"],
+        "skills": data["skills"],
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })    
