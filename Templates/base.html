@@ -5,12 +5,12 @@
 <body>
 <!-- Navbar -->
   <nav class="navbar glass">
-    <div class="logo">Apna<span>Mistri</span></div>
+    <a href="/" style=" text-decoration: none; color: inherit;"><div class="logo" >Apna<span>Mistri</span></div></a>
     <div class="nav-btns">
       <button class="btn ghost" aria-label="Home" onclick="window.location.href='/'">Home</button>
       <button class="btn ghost" aria-label="Find Workers" onclick="window.location.href='/map'">Find Workers</button>
-      <button class="btn ghost" aria-label="About us">About Us</button>
-      <button class="btn ghost" aria-label="How it works">How it works</button>
+      <button class="btn ghost" aria-label="About us" onclick="window.location.href='/about'">About Us</button>
+      <button class="btn ghost" aria-label="How it works" onclick="window.location.href='/how-it-works'">How it works</button>
       {% if user %}
       <button class="btn ghost" aria-label="logout" onclick="window.location.href='/logout'">Logout</button>
       <button class="btn primary" aria-label="Dashboard" onclick="window.location.href='/dashboard'">Dashboard</button>

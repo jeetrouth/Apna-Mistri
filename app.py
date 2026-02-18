@@ -152,7 +152,9 @@ def select_role():
 # ======================
 # Dashboards
 # ======================
-
+@app.route("/worker/onboarding")
+def worker_onboarding():
+    return render_template("worker_onboarding.html")
 @app.route("/worker/dashboard")
 def worker_dashboard():
     
@@ -161,6 +163,16 @@ def worker_dashboard():
 @app.route("/customer/dashboard")
 def customer_dashboard():
     return render_template("customer_dashboard.html")
+
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/how-it-works")
+def how_it_works():
+    return render_template("how_it_works.html")
 
 # ======================
 # Logout
