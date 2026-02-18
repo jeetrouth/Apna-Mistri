@@ -147,12 +147,12 @@ http://127.0.0.1:5000/
 ---
 
 ## 🤝 Contributing
-Pull requests welcome.
-If you’d like to add AI verification, PWA, or analytics — open an issue first.
+- Pull requests welcome.
+  If you’d like to add AI verification, PWA, or analytics — open an issue first.
 ---
 ## 📜 License
 MIT License.
 
 
-“Skill deserves visibility. ApnaMistri gives every worker a digital identity.”
+| “Skill deserves visibility. ApnaMistri gives every worker a digital identity.”
 
