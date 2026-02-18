@@ -53,7 +53,7 @@ Instead of relying on word-of-mouth, users can view real before/after work, chat
 ---
 
 ## ⚙️ Project Structure
-
+```
 ApnaMistri/
 │
 ├── app.py
@@ -76,7 +76,7 @@ ApnaMistri/
 ├── firebase_services.py
 └── upload.py
 
-
+```
 ---
 
 ## 🧠 How It Works
