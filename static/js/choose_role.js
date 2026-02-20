@@ -19,7 +19,7 @@ document.querySelectorAll(".role-card").forEach(card => {
       if (role === "worker") {
         window.location.href = "/worker/onboarding";
       } else {
-        window.location.href = "/customer/dashboard";
+        window.location.href = "/user/setup";
       }
 
     } else {

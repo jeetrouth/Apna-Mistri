@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, abort, jsonify
-from services import firebase_services
+from services import firebase_services, imagekit_services
 from firebase_admin import auth
+
+from PIL import Image
 import os
 app = Flask(__name__)
 app.secret_key = "super-secret-key"
@@ -77,6 +79,54 @@ def firebase_login():
 
     return {"status": "existing", "role": role}
 
+@app.route("/user/setup", methods=["GET", "POST"])
+def user_setup():
+
+    if not session["user"]:
+        return redirect("/")
+
+    uid = session["user"]["uid"]
+
+    if request.method == "GET":
+        return render_template("usersetup.html")
+
+    # ---------- POST ----------
+
+    name = request.form.get("name")
+    phone = request.form.get("phone")
+    email = request.form.get("email")
+    address = request.form.get("address")
+    city = request.form.get("city")
+    pincode = request.form.get("pincode")
+    addr={
+        "fulladdr": address,
+        "city": city,
+        "pincode": pincode
+    }
+    photo = request.files.get("photo")
+
+    photo_url = None
+
+    if photo:
+        from PIL import Image
+        from services.imagekit_services import upload_user_profile
+
+        img = Image.open(photo)
+        result = upload_user_profile(uid, img)
+        photo_url = result["url"]
+    data={
+        "name": name,
+        "phone": phone,
+        "email": email,
+        "address": addr,
+        "photo_url": photo_url}
+    # Update users collection (customer profile lives here)
+    firebase_services.update_user_profile(uid,data)
+
+    return {"success": True}
+
+
+
 @app.route("/api/update-profile", methods=["POST"])
 def update_profile():
 
@@ -152,9 +202,69 @@ def select_role():
 # ======================
 # Dashboards
 # ======================
-@app.route("/worker/onboarding")
+@app.route("/worker/onboarding", methods=["GET", "POST"])
 def worker_onboarding():
-    return render_template("worker_onboarding.html")
+
+    if not  session["user"]:
+        return redirect("/")
+
+    uid = session["user"]["uid"]
+
+    if request.method == "GET":
+        return render_template("worker_onboarding.html")
+
+    # -------- POST --------
+
+    name = request.form.get("name")
+    trade = request.form.get("trade")
+    trade_other = request.form.get("trade_other")
+
+    if trade == "Other" and trade_other:
+        trade = trade_other
+
+    experience = request.form.get("experience")
+    experience_other = request.form.get("experience_other")
+
+    if experience == "Other" and experience_other:
+        experience = experience_other
+
+    city = request.form.get("city")
+    skills = request.form.getlist("skills")
+    radius = request.form.get("radius")
+    bio = request.form.get("bio")
+    price = request.form.get("price")
+    availability = request.form.get("availability")
+    emergency = request.form.get("emergency")
+
+    photo = request.files.get("photo")
+
+    avatar_url = None
+
+    if photo:
+        img = Image.open(photo)
+        result = imagekit_services.upload_worker_avatar(uid, img)
+        avatar_url = result["url"] if result else None
+
+    # Update USERS (identity)
+    firebase_services.update_worker_At_user(uid, name, avatar_url)
+
+    # Create / update WORKERS (professional profile)
+    firebase_services.update_worker_profile(uid, {
+        "name": name,
+        "trade": trade,
+        "experience": experience,
+        "city": city,
+        "skills": skills,
+        "radius": radius,
+        "bio": bio,
+        "price": price,
+        "availability": availability,
+        "emergency": emergency,
+        "avatar_url": avatar_url
+    })
+
+    return redirect("/worker/dashboard")
+
 @app.route("/worker/dashboard")
 def worker_dashboard():
     
@@ -162,8 +272,32 @@ def worker_dashboard():
 
 @app.route("/customer/dashboard")
 def customer_dashboard():
-    return render_template("customer_dashboard.html")
+    return render_template("customer_dashboard.html",user=session["user"])
 
+@app.route("/api/customer/dashboard",methods=["GET"])
+def customer_dashboard_data():
+
+    if not session["user"]:
+        return {"error": "unauthorized"}, 401
+
+    uid = session["user"]["uid"]
+
+    # --- Ongoing Jobs ---
+    ongoing = firebase_services.get_ongoing_jobs_for_user(uid, "customer")
+    # --- Previous Jobs ---
+    previous = firebase_services.get_previous_jobs_for_user(uid, "customer")
+    # --- Saved Workers ---
+    saved_workers = firebase_services.get_saved_workers_for_customer(uid)
+
+    # --- Chats ---
+    chats = firebase_services.get_chats_for_user(uid)
+
+    return {
+        "ongoing_jobs": ongoing,
+        "previous_jobs": previous,
+        "saved_workers": saved_workers,
+        "recent_chats": chats
+    }
 
 
 @app.route("/about")
