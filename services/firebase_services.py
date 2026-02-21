@@ -178,3 +178,75 @@ def update_worker_At_user(uid,name,photo_url):
         "photo_url": photo_url,
         "updatedAt": firestore.SERVER_TIMESTAMP
     })
+
+
+def get_existing_conversation(customer_id, worker_id):
+    existing = db.collection("conversations")\
+        .where("participants", "array_contains", customer_id)\
+        .stream()
+
+    for c in existing:
+        if worker_id in c.to_dict()["participants"]:
+            return {"conversationId": c.id}
+def create_new_conversation(customer_id, worker_id):
+    ref = db.collection("conversations").add({
+        "participants": [customer_id, worker_id],
+        "lastMessage": "",
+        "lastUpdated": firestore.SERVER_TIMESTAMP
+    })
+    return {"conversationId":ref[1].id}     
+
+
+def get_conversations_for_user(uid):
+    
+    chats = []
+    for c in db.collection("conversations")\
+        .where("participants", "array_contains", uid)\
+        .order_by("lastTimestamp", direction=firestore.Query.DESCENDING)\
+        .stream():
+
+        d = c.to_dict()
+        d["id"] = c.id
+        
+        # Attach worker name
+        other = [p for p in d["participants"] if p != uid][0]
+
+        worker = db.collection("workers").document(other).get()
+        if worker.exists:
+            d["workerName"] = worker.to_dict().get("name")
+
+        chats.append(d)
+    return chats
+def get_messages_from_cid(conversation_id):
+    msgs = []
+
+    for m in db.collection("conversations")\
+        .document(conversation_id)\
+        .collection("messages")\
+        .order_by("createdAt")\
+        .stream():
+        d=m.to_dict()
+         # convert Firestore timestamp → seconds
+        if "createdAt" in d:
+            d["createdAt"] = d["createdAt"].timestamp()
+
+
+        msgs.append(d)
+    return msgs
+
+def send_message(conversation_id, sender_id, text):
+    # Save message
+    db.collection("conversations")\
+        .document(conversation_id)\
+        .collection("messages")\
+        .add({
+            "senderId": sender_id,
+            "text": text,
+            "createdAt": firestore.SERVER_TIMESTAMP
+        })
+    db.collection("conversations")\
+        .document(conversation_id)\
+        .update({
+            "lastMessage": text,
+            "updatedAt": firestore.SERVER_TIMESTAMP
+        })  

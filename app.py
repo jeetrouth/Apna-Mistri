@@ -73,7 +73,8 @@ def firebase_login():
     session["user"]={
             "uid": uid,
             "name": name,
-            "photo_url": photo
+            "photo_url": photo,
+            "role": role
         }
 
 
@@ -265,6 +266,16 @@ def worker_onboarding():
 
     return redirect("/worker/dashboard")
 
+@app.route("/dashboard")
+def dashboard():
+    if not session["user"]:
+        return redirect("/")
+
+    if session["user"]["role"] == "worker":
+        return redirect("/worker/dashboard")
+    else:
+        return redirect("/customer/dashboard")
+
 @app.route("/worker/dashboard")
 def worker_dashboard():
     
@@ -298,6 +309,78 @@ def customer_dashboard_data():
         "saved_workers": saved_workers,
         "recent_chats": chats
     }
+
+@app.route("/chat/start", methods=["POST"])
+def start_chat():
+
+    if not session["user"]:
+        return {"error": "unauthorized"}, 401
+
+    uid = session["user"]["uid"]
+    worker_id = request.json.get("workerId")
+
+    # Check existing conversation
+    existing = firebase_services.get_existing_conversation(uid, worker_id)
+    if existing:
+        return existing
+    # Create new conversation
+    convo = firebase_services.create_new_conversation(uid, worker_id)
+    if convo:
+        return convo
+
+
+
+@app.route("/api/conversations")
+def get_conversations():
+
+    if  not session["user"]:
+        return [], 401
+
+    uid = session["user"]["uid"]
+    chats = firebase_services.get_conversations_for_user(uid)
+    return chats
+
+
+@app.route("/api/messages/<cid>")
+def get_messages(cid):
+
+    if  not  session["user"]:
+        return [], 401
+
+    msgs= firebase_services.get_messages_from_cid(cid)
+    return msgs
+
+@app.route("/api/send/<cid>", methods=["POST"])
+def send_message(cid):
+
+    if not session["user"]:
+        return {"error": "unauthorized"}, 401
+
+    uid = session["user"]["uid"]
+    text = request.json.get("text")
+
+    if not text:
+        return {"error": "empty"}, 400
+
+    
+    try:
+        firebase_services.send_message(cid, uid, text)
+    except Exception as e:
+        print("Error sending message:", e)
+        return {"error": "Failed to send message"}, 500
+
+    
+
+    return {"success": True}
+
+
+@app.route("/inbox")
+def inbox():
+
+    if not session["user"]:
+        return redirect("/")
+
+    return render_template("inbox.html", user=session["user"])
 
 
 @app.route("/about")

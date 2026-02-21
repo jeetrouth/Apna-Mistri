@@ -164,3 +164,6 @@ function openJobDetails(job){
   );
 
 }
+function openInbox(){
+  window.location.href = "/inbox";
+}

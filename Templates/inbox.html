@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% extends "base.html" %}
+{% block content %}
     <title>ApnaMistri | Inbox</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/inbox.css') }}">
-</head>
-<script src="{{ url_for('static', filename='js/inbox.js') }}"></script>
+
 <body>
 
 <!-- ================= SOLID HEADER ================= -->
@@ -39,31 +36,10 @@
                 <div class="sidebar-header">
                     <select>
                         <option>All Conversations</option>
-                        <option>Unread</option>
-                        <option>Active</option>
-                        <option>Completed</option>
                     </select>
                 </div>
 
-                <div class="worker-card active">
-                   <img src="{{ url_for('static', filename='images/worker-photo.jpeg') }}" class="avatar">
-
-                    <div>
-                        <h4>Worker Name</h4>
-                        <p>Worker Role</p>
-                        <span>Last message preview...</span>
-                    </div>
-                </div>
-
-                <div class="worker-card">
-                    <img src="{{ url_for('static', filename='images/worker-photo.jpeg') }}" class="avatar">
-
-                    <div>
-                        <h4>Worker Name</h4>
-                        <p>Worker Role</p>
-                        <span>Last message preview...</span>
-                    </div>
-                </div>
+                
             </aside>
 
             <!-- ================= CHAT PANEL ================= -->
@@ -72,46 +48,22 @@
                 <!-- Chat Header -->
                 <div class="chat-header">
                     <div class="chat-user">
-                        <img src="{{ url_for('static', filename='images/worker-photo.jpeg') }}" class="avatar">
-
-                        <div>
-                            <h3>Worker Name</h3>
-                            <p>Worker Role • ★ 4.5</p>
-                        </div>
+                        
                     </div>
                     <!-- GREEN BOOK BUTTON -->
-                    <button class="book-btn">Book Now</button>
+                    <button class="book-btn">Hire Now</button>
                 </div>
 
                 <!-- Messages -->
-                <div class="chat-messages">
-                    <div class="message left">
-                        <div class="bubble">
-                            Hello, I will arrive in 30 minutes.
-                        </div>
-                        <span>2:30 PM</span>
-                    </div>
-
-                    <div class="message right">
-                        <div class="bubble">
-                            Okay, thank you!
-                        </div>
-                        <span>2:31 PM</span>
-                    </div>
-
-                    <div class="message left">
-                        <div class="bubble">
-                            Please keep tools ready.
-                        </div>
-                        <span>2:32 PM</span>
-                    </div>
+                <div class="chat-body">
+                    
                 </div>
 
                 <!-- Input -->
                 <div class="chat-input">
-                    <input type="text" placeholder="Type your message...">
+                    <input id="messageInput" type="text" placeholder="Type your message...">
                     <!-- BLUE SEND BUTTON -->
-                    <button class="send-btn">Send</button>
+                    <button id ="sendBtn" class="send-btn">Send</button>
                 </div>
 
             </div>
@@ -121,6 +73,10 @@
     </div>
 
 </section>
+<script>
+  window.currentUserId = "{{ user['uid'] }}";
+</script>
+<script src="{{ url_for('static', filename='js/inbox.js') }}"></script>
 
 </body>
-</html>
+{% endblock %}
