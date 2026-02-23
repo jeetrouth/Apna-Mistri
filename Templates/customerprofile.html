@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<title>Profile</title>
+<link rel="stylesheet" href="/static/css/customerprofile.css">
+<body>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+<h2 class="title">Customer Profile</h2>
+
+<div class="card">
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+
+        <!-- Man Logo beside Customer Name -->
+        <img src="Gemini_Generated_Image_iuf935iuf935iuf9.png" class="avatar">
+
+        <div>
+            <h3>Customer Name</h3>
+            <p class="join">Joined: Jan 2024</p>
+        </div>
+    </div>
+
+
+    <div class="section">Personal Information</div>
+
+    <label>Full Name</label>
+    <input type="text" value="Customer Name">
+
+    <label>Phone Number</label>
+    <input type="text" value="+91-9876543210">
+
+    <label>Email Address</label>
+    <input type="email" value="customer@email.com">
+
+    <div class="grid">
+        <div>
+            <label>Address</label>
+            <textarea rows="4">123 Main Street, Salt Lake, Kolkata, 700091</textarea>
+        </div>
+
+        <div>
+            <label>City</label>
+            <input type="text" value="Kolkata">
+
+            <label>PIN Code</label>
+            <input type="text" value="700091">
+        </div>
+    </div>
+
+   <button id="editBtn" class="save-btn">Edit Profile</button>
+   <button id="saveBtn" class="save-btn" style="display:none;">Save Changes</button>
+
+</div>
+</main>
+<script src="/static/js/customerprofile.js"></script>
+</body>
+
+{% endblock %}
