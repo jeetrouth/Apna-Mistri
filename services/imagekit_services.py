@@ -13,7 +13,7 @@ imagekit = ImageKit(
 # -------------------------
 # Helper: upload PIL image
 # -------------------------
-'''
+
 def upload_pil_image(pil_image, file_name, folder_path):
 
     try:
@@ -52,15 +52,19 @@ def upload_pil_image(pil_image, file_name, folder_path):
 # Worker profile avatar
 # -------------------------
 
-def upload_worker_avatar(worker_uid, pil_image):
+def upload_worker_avatar(worker_uid, file):
 
     folder = f"Home/ApnaMistri/workers/{worker_uid}/profile"
 
-    return upload_pil_image(
-        pil_image,
-        "avatar.jpg",
-        folder
+    file_to_up=file.read()
+    filename = f"profile_{worker_uid}.jpg"
+    upload= imagekit.files.upload(
+        file=file_to_up,
+        file_name=filename,
+        folder=folder
     )
+    print("✅ Upload successful:", upload)
+    return upload.url
 
 
 # -------------------------
@@ -83,7 +87,6 @@ def upload_job_image(worker_uid, job_id, pil_image, stage="before"):
         folder
     )
 
-'''
 # -------------------------
 # Customer profile photo
 # -------------------------

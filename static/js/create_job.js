@@ -210,3 +210,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+
+if (workerId) {
+    fetch(`/api/worker/${workerId}`)
+        .then(res => res.json())
+        .then(worker => {
+            document.getElementById("workerNameDisplay").innerText = worker.name;
+            document.querySelector(".worker-skill").innerText = worker.trade;
+            document.querySelector(".worker-mini-img").src =
+                worker.photo || "/static/images/default-avatar.png";
+        });
+}

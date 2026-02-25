@@ -27,5 +27,5 @@ async function hireWorker(workerId){
       return
    }
 
-   window.location.href = `/create-job/${workerId}`
+   window.location.href = `/create-job?worker_id=${workerId}`
 }

@@ -212,10 +212,16 @@ def worker_portfolio(uid):
         user=session.get("user")
     )
 
+@app.route("/api/check-auth")
+def check_auth():
+    if session.get("user"):
+        return {"authenticated": True,"status": 200, "user": session["user"]}
+    return {"authenticated": False, "status": 401}, 401
+
 # ======================
 # Role Setup (First Time)
 # ======================
-app.route("/select-role", methods=["GET", "POST"])
+@app.route("/select-role", methods=["GET", "POST"])
 def select_role():
 
     # Must be logged in
@@ -302,17 +308,17 @@ def worker_onboarding():
     radius = request.form.get("radius")
     bio = request.form.get("bio")
     price = request.form.get("price")
-    availability = request.form.get("availability")
+    availability = request.form.get("available_days")
     emergency = request.form.get("emergency")
+    working_hours = request.form.get("working_hours")
 
     photo = request.files.get("photo")
 
     avatar_url = None
 
     if photo:
-        img = Image.open(photo)
-        result = imagekit_services.upload_worker_avatar(uid, img)
-        avatar_url = result["url"] if result else None
+        result = imagekit_services.upload_worker_avatar(uid, photo)
+        avatar_url = result if result else None
 
     # Update USERS (identity)
     firebase_services.update_worker_At_user(uid, name, avatar_url)
@@ -328,9 +334,13 @@ def worker_onboarding():
         "bio": bio,
         "price": price,
         "availability": availability,
+        "working_hours": working_hours,
         "emergency": emergency,
         "avatar_url": avatar_url
     })
+    session["user"]["role"] = "worker"
+    session["user"]["photo_url"] = avatar_url
+    session.modified = True
 
     return redirect("/worker/dashboard")
 
@@ -341,8 +351,10 @@ def dashboard():
 
     if session["user"]["role"] == "worker":
         return redirect("/worker/dashboard")
-    else:
+    elif session["user"]["role"] == "customer":
         return redirect("/customer/dashboard")
+    else:
+        return redirect("/select-role")    
 
 # ================= WORKER DASHBOARD PAGE =================
 
@@ -355,6 +367,54 @@ def worker_dashboard():
         "worker_dashboard.html",
         user=session["user"]
     )
+@app.route("/api/worker/dashboard")
+def api_worker_dashboard():
+
+    uid = session["user"]["uid"]
+
+    data = firebase_services.get_worker_dashboard(uid)
+
+    return data  
+
+@app.route("/api/worker/status", methods=["POST"])
+def update_worker_status():
+
+    uid = session["user"]["uid"]
+    online = request.json.get("online")
+
+    firebase_services.update_worker_online(uid, online)
+
+    return {"success": True}
+
+@app.route("/api/worker/chats")
+def worker_recent_chats():
+
+    uid = session["user"]["uid"]
+
+    return firebase_services.get_worker_recent_chats(uid)
+
+@app.route("/api/worker/requests")
+def worker_requests():
+
+    uid = session["user"]["uid"]
+
+    return firebase_services.get_worker_requests(uid)
+
+@app.route("/api/worker/job/<job_id>/<action>", methods=["POST"])
+def worker_job_action(job_id, action):
+
+    uid = session["user"]["uid"]
+
+    firebase_services.worker_job_action(uid, job_id, action)
+
+    return {"success": True}    
+
+
+@app.route("/api/worker/<uid>")
+def api_worker(uid):
+    worker = firebase_services.get_worker_by_uid(uid)
+    return jsonify(worker)   
+
 @app.route("/customer/dashboard")
 def customer_dashboard():
     return render_template("customer_dashboard.html",user=session["user"])
@@ -464,6 +524,48 @@ def about():
 @app.route("/how-it-works")
 def how_it_works():
     return render_template("how_it_works.html",user=session.get("user"))
+
+@app.route("/create-job", methods=["GET", "POST"])
+def create_job():
+
+    # Must be logged in
+    user = session.get("user")
+    if not user:
+        return redirect("/getstarted")
+
+    # ----------------------------
+    # GET → Show Create Job Page
+    # ----------------------------
+    if request.method == "GET":
+        worker_id = request.args.get("worker_id")
+        return render_template(
+            "create_job.html",
+            worker_id=worker_id,
+            user=user
+        )
+
+    # ----------------------------
+    # POST → Save Job
+    # ----------------------------
+    job = {
+        "customerId": user["uid"],
+        "workerId": request.form.get("worker_id"),
+        "jobTitle": request.form.get("job_title"),
+        "description": request.form.get("description"),
+        "preferredDate": request.form.get("preferred_date"),
+        "preferredTime": request.form.get("preferred_time"),
+        "location": request.form.get("location"),
+        "budget": request.form.get("budget"),
+        "notes": request.form.get("notes"),
+
+    }
+
+    firebase_services.create_job(job)
+
+    return redirect("/customer/dashboard")
+
+
+
 
 # ======================
 # Logout

@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% extends "base.html" %}
+{% block content %}
     <meta charset="UTF-8">
     <title>Worker Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/css/worker_dashboard.css">
-</head>
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/worker_dashboard.css') }}">
 <body>
 
 <!-- ================= WORKER DASHBOARD ================= -->
@@ -14,7 +11,7 @@
 <!-- ===== WELCOME SECTION ===== -->
 <section class="welcome-section">
     <div class="welcome-left">
-        <h2>Welcome back, <span id="workerName">Worker Name</span> 👋</h2>
+        <h2>Welcome back, <span id="workerName">{{ user.name }}</span> 👋</h2>
     </div>
 
     <div class="welcome-right">
@@ -22,7 +19,7 @@
             <input type="checkbox" name="online_status" id="onlineToggle" checked>
             <span class="slider"></span>
         </label>
-        <span id="statusText">Online</span>
+        <span id="statusText">online</span>
     </div>
 </section>
 
@@ -33,7 +30,7 @@
     <div class="summary-card purple-card">
         <div class="card-icon">🛠</div>
         <h3>Active Jobs</h3>
-        <p id="activeJobsCount">0</p>
+        <p id="activeJobsCount"></p>
     </div>
 
     <div class="summary-card blue-card">
@@ -68,9 +65,9 @@
             </button>
         </div>
 
-        <div id="requestContainer">
+        <div id="incomingRequests">
 
-            <div class="job-card urgent-job">
+            <!--  <div class="job-card urgent-job">
                 <span class="job-badge new-badge">NEW</span>
 
                 <p><strong>Customer:</strong> Customer Name</p>
@@ -87,13 +84,13 @@
                     <button class="btn danger">Decline</button>
                     <button class="btn outline">View Details</button>
                 </div>
-            </div>
+            </div>-->
 
         </div>
     </div>
 
 
-    <!-- ===== PERFORMANCE SECTION ===== -->
+    <!-- ===== PERFORMANCE SECTION ===== 
     <div class="card-section performance-section">
 
         <h3>My Performance</h3>
@@ -121,7 +118,7 @@
 
         </div>
 
-    </div>
+    </div>-->
 
 </section>
 
@@ -129,7 +126,7 @@
 <!-- ===== ONGOING + RECENT ===== -->
 <section class="grid-50-50">
 
-    <!-- ===== ONGOING JOBS ===== -->
+    <!-- ===== ONGOING JOBS =====
     <div class="card-section ongoing-card">
         <h3>Ongoing Job</h3>
 
@@ -148,7 +145,12 @@
             <button class="btn outline">Open Details</button>
             <button class="btn primary">Mark Completed</button>
         </div>
+    </div> -->
+    <div class="card-section ongoing-card">
+    <h3>Ongoing Job</h3>
+    <div id="ongoingJobBox"></div>
     </div>
+
 
 
     <!-- ===== RECENT CHATS ===== -->
@@ -159,15 +161,15 @@
             <a href="/inbox" class="view-all-link">View All</a>
         </div>
 
-        <div class="chat-preview">
-            <div class="chat-item" onclick="window.location.href='/inbox'">
+        <div class="chat-preview" id="recentChatsContainer">
+            <!--<div class="chat-item" onclick="window.location.href='/inbox'">
                 <div class="chat-avatar">👤</div>
                 <div class="chat-info">
                     <strong>Customer Name</strong>
                     <p>Hello, please arrive early...</p>
                 </div>
                 <div class="chat-time">2:30 PM</div>
-            </div>
+            </div>-->
         </div>
 
     </div>
@@ -204,27 +206,6 @@
             </tr>
         </thead>
         <tbody id="historyTableBody">
-
-            <tr data-status="Completed">
-                <td>Bathroom Repair</td>
-                <td>Customer Name</td>
-                <td>Completed</td>
-                <td>⭐⭐⭐⭐⭐</td>
-            </tr>
-
-            <tr data-status="Cancelled">
-                <td>Pipe Fix</td>
-                <td>Customer B</td>
-                <td>Cancelled</td>
-                <td>-</td>
-            </tr>
-
-            <tr data-status="Disputed">
-                <td>Electrical Work</td>
-                <td>Customer C</td>
-                <td>Disputed</td>
-                <td>-</td>
-            </tr>
 
         </tbody>
     </table>
@@ -265,4 +246,4 @@
 <script src="../static/js/worker_dashboard.js"></script>
 
 </body>
-</html>
+{% endblock %}

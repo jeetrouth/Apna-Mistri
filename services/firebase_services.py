@@ -160,7 +160,9 @@ def update_worker_profile(uid,data):
         "bio": data["bio"],
         "price": data["price"],
         "availability": data["availability"],
+        "working_hours": data["working_hours"],
         "emergency": data["emergency"],
+
 
         "avatar_url": data["avatar_url"],
 
@@ -199,25 +201,40 @@ def create_new_conversation(customer_id, worker_id):
 
 
 def get_conversations_for_user(uid):
-    
+
     chats = []
-    for c in db.collection("conversations")\
+
+    docs = db.collection("conversations")\
         .where("participants", "array_contains", uid)\
         .order_by("updatedAt", direction=firestore.Query.DESCENDING)\
-        .stream():
+        .stream()
 
+    for c in docs:
         d = c.to_dict()
         d["id"] = c.id
-        
-        # Attach worker name
-        other = [p for p in d["participants"] if p != uid][0]
 
-        worker = db.collection("workers").document(other).get()
-        if worker.exists:
-            d["workerName"] = worker.to_dict().get("name")
-            d["workerPhoto"] = worker.to_dict().get("avatar_url")
+        # Find the other participant
+        other_uid = [p for p in d["participants"] if p != uid][0]
 
-        chats.append(d)
+        # First try workers collection
+        other_doc = db.collection("workers").document(other_uid).get()
+
+        if other_doc.exists:
+            other = other_doc.to_dict()
+
+        else:
+            # Fallback to users (customer)
+            other_doc = db.collection("users").document(other_uid).get()
+            other = other_doc.to_dict() if other_doc.exists else {}
+
+        chats.append({
+            "id": c.id,
+            "name": other.get("name", "Unknown"),
+            "photo": other.get("photo_url"),
+            "lastMessage": d.get("lastMessage"),
+            "updatedAt": d.get("updatedAt")
+        })
+
     return chats
 def get_messages_from_cid(conversation_id):
     msgs = []
@@ -286,8 +303,194 @@ def get_worker_profile(uid):
         "about": worker.get("bio", ""),
         "skills": worker.get("skills", []),
         "availability": worker.get("availability", ""),
+        "working_hours": worker.get("working_hours", ""),
         "price": worker.get("price", 0),
 
         "work_gallery": worker.get("work_gallery", []),
         "reviews": worker.get("reviews", [])
     }
+
+def get_worker_dashboard(uid):
+
+    worker_ref = db.collection("workers").document(uid)
+    worker_doc = worker_ref.get()
+
+    if not worker_doc.exists:
+        return {}
+
+    worker = worker_doc.to_dict()
+
+    # ================= ACTIVE JOBS =================
+    active_jobs_query = (
+        db.collection("jobs")
+        .where("workerId", "==", uid)
+        .where("status", "in", ["accepted", "in_progress"])
+        .stream()
+    )
+
+    active_jobs = []
+    for doc in active_jobs_query:
+        job = doc.to_dict()
+        job["id"] = doc.id
+        active_jobs.append(job)
+
+    # ================= INCOMING JOBS =================
+    incoming_query = (
+        db.collection("jobs")
+        .where("workerId", "==", uid)
+        .where("status", "==", "pending")
+        .stream()
+    )
+
+    incoming_jobs = []
+    for doc in incoming_query:
+        job = doc.to_dict()
+        job["customerName"] = db.collection("users").document(job["customerId"]).get().to_dict().get("name", "Customer")
+        job["id"] = doc.id
+        incoming_jobs.append(job)
+
+    # ================= JOB HISTORY =================
+    history_query = (
+        db.collection("jobs")
+        .where("workerId", "==", uid)
+        .where("status", "in", ["completed", "cancelled"])
+        .stream()
+    )
+
+    history = []
+    for doc in history_query:
+        job = doc.to_dict()
+        job["id"] = doc.id
+        history.append(job)
+
+    # ================= RECENT CHATS =================
+    chat_query = (
+        db.collection("chats")
+        .where("participants", "array_contains", uid)
+        .order_by("updatedAt", direction=firestore.Query.DESCENDING)
+        .limit(5)
+        .stream()
+    )
+
+    recent_chats = []
+
+    for chat_doc in chat_query:
+        chat = chat_doc.to_dict()
+        chat_id = chat_doc.id
+
+        # Identify customer (other participant)
+        participants = chat.get("participants", [])
+        other_user = [p for p in participants if p != uid]
+
+        customer_name = "Customer"
+        customer_photo = ""
+
+        if other_user:
+            customer_doc = db.collection("customers").document(other_user[0]).get()
+            if customer_doc.exists:
+                customer_data = customer_doc.to_dict()
+                customer_name = customer_data.get("name", "Customer")
+                customer_photo = customer_data.get("photo_url", "")
+
+        recent_chats.append({
+            "chatId": chat_id,
+            "customer_name": customer_name,
+            "customer_photo": customer_photo,
+            "last_message": chat.get("lastMessage", ""),
+            "last_message_time": chat.get("updatedAt")
+        })
+
+    return {
+        "name": worker.get("name"),
+        "rating": worker.get("rating", 0),
+        "active_jobs": active_jobs,
+        "incoming_jobs": incoming_jobs,
+        "job_history": history,
+        "recent_chats": recent_chats
+    }
+def update_worker_online(uid, online):
+
+    db.collection("workers").document(uid).update({
+        "online": online
+    })
+
+def get_worker_recent_chats(uid):
+
+    chats = []
+
+    for c in db.collection("conversations")\
+        .where("participants", "array_contains", uid)\
+        .order_by("updatedAt", direction=firestore.Query.DESCENDING)\
+        .limit(5)\
+        .stream():
+
+        d = c.to_dict()
+        d["id"] = c.id
+
+        customer_id = [p for p in d["participants"] if p != uid][0]
+
+        customer = db.collection("users").document(customer_id).get().to_dict()
+
+        chats.append({
+            "conversationId": c.id,
+            "customerName": customer.get("name"),
+            "lastMessage": d.get("lastMessage"),
+            "time": d.get("updatedAt")
+        })
+
+    return chats
+def get_worker_requests(uid):
+
+    jobs = []
+
+    for j in db.collection("jobs")\
+        .where("workerId", "==", uid)\
+        .where("status", "==", "pending")\
+        .stream():
+
+        d = j.to_dict()
+        d["id"] = j.id
+        jobs.append(d)
+
+    return jobs
+
+
+def worker_job_action(uid, job_id, action):
+
+    status = "active" if action == "accept" else "declined"
+
+    db.collection("jobs").document(job_id).update({
+        "status": status
+    })
+
+
+def get_worker_by_uid(uid):
+    doc = db.collection("workers").document(uid).get()
+
+    if not doc.exists:
+        return {}
+
+    data = doc.to_dict()
+    return {
+        "uid": uid,
+        "name": data.get("name"),
+        "trade": data.get("trade"),
+        "photo": data.get("avatar_url")
+    }
+
+
+def create_job(job):
+    job = {
+        "customerId": job.get("customerId"),
+        "workerId": job.get("workerId"),
+        "jobTitle": job.get("jobTitle"),
+        "description": job.get("description"),
+        "preferredDate": job.get("preferredDate"),
+        "preferredTime": job.get("preferredTime"),
+        "location": job.get("location"),
+        "budget": job.get("budget"),
+        "notes": job.get("notes"),
+        "status": "pending",
+        "createdAt": firestore.SERVER_TIMESTAMP
+    }
+    db.collection("jobs").add(job)    

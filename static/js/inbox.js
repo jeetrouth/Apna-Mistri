@@ -52,17 +52,12 @@ function renderSidebar(conversations) {
     const card = document.createElement("div");
     card.className = "worker-card";
 
-    const time = c.updatedAt
-      ? new Date(c.updatedAt.seconds * 1000).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit"
-        })
-      : "";
+    const time = formatTime(c.updatedAt);
 
     card.innerHTML = `
-      <div class="avatar" style="background-image: url('${c.workerPhoto || '/static/images/default-avatar.png'}');"></div>
+      <div class="avatar" style="background-image: url('${c.photo || '/static/images/default-avatar.png'}');"></div>
       <div>
-        <h4>${c.workerName || "Worker"}</h4>
+        <h4>${c.name || "Worker"}</h4>
         <p>${c.lastMessage || ""}</p>
         <span>${time}</span>
       </div>
@@ -81,6 +76,28 @@ function renderSidebar(conversations) {
   });
 }
 
+
+function formatTime(ts) {
+  if (!ts) return "";
+
+  // Case 1: Firestore timestamp object
+  if (ts.seconds) {
+    return new Date(ts.seconds * 1000).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  // Case 2: ISO string
+  if (typeof ts === "string") {
+    return new Date(ts).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  return "";
+}
 
 // -------------------------------
 // Open Chat
@@ -129,15 +146,7 @@ function renderMessages(messages) {
     // time
     const timeSpan = document.createElement("span");
 
-    if (m.createdAt) {
-      const t = new Date(m.createdAt * 1000);
-      timeSpan.textContent = t.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    } else {
-      timeSpan.textContent = "";
-    }
+    timeSpan.textContent = formatTime(m.createdAt);
 
     msgDiv.appendChild(bubble);
     msgDiv.appendChild(timeSpan);
@@ -186,9 +195,9 @@ function renderTopPanel(conversation) {
 
   header.innerHTML = `
     <div class="chat-user">
-        <div class="avatar" style="background-image: url('${conversation.workerPhoto || '/static/images/default-avatar.png'}');"></div>
+        <div class="avatar" style="background-image: url('${conversation.photo || '/static/images/default-avatar.png'}');"></div>
         <div>
-            <h3>${conversation.workerName || "Worker"}</h3>
+            <h3>${conversation.name || "Worker"}</h3>
             <p>${conversation.lastMessage ? "Active Chat" : "Start Conversation"}</p>
         </div>
     </div>
