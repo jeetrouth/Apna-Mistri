@@ -1,44 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends "base.html" %}
+{% block content %}
   <title>Worker Portfolio</title>
-  <link rel="stylesheet" href="worker_portfolio.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/worker_portfolio.css') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+
 <body>
 
 <div class="portfolio-card">
 
   <div class="top-profile">
-    <img src="images/handshake.jpeg" class="avatar">
+    <img src="{{ slug.photo or url_for('static', filename='images/handshake.jpeg') }}" class="avatar">
     
     <div class="profile-details">
-      <h2>Rahul Das</h2>
-      <p class="rating">⭐ 4.8 (124 reviews)</p>
-      <p>Electrician • 5+ Years Experience</p>
-      <p class="location">📍 Kolkata, India</p>
+      <h2>{{ slug.name }}</h2>
+      <p class="rating">⭐ {{slug.rating}} ({{slug.review_count}} reviews)</p>
+      <p>{{ slug.trade }} • {{slug.experience}} Years Experience</p>
+      <p class="location">📍 {{slug.location}}</p>
     </div>
   </div>
 
   <div class="section">
     <h3>About</h3>
-    <p>Experienced electrician specializing in installation, wiring and repair services for homes and offices.</p>
+    <p>{{slug.about}}</p>
   </div>
 
   <div class="section">
     <h3>Skills</h3>
     <div class="tags">
-      <span>Installation</span>
-      <span>Repair</span>
-      <span>Maintenance</span>
-      <span>Wiring</span>
+      {% for skill in slug.skills %}
+      <span class="tag">{{ skill }}</span>
+      {% endfor %}
     </div>
   </div>
 
   <div class="section availability">
     <h3>Availability</h3>
-    <p><strong>Available Days:</strong> Monday - Saturday</p>
-    <p><strong>Working Hours:</strong> 9:00 AM - 7:00 PM</p>
+    <p><strong>Available Days:</strong> {{slug.available_days}}</p>
+    <p><strong>Working Hours:</strong> {{slug.working_hours}}</p>
   </div>
 
   <!-- <div class="section">
@@ -55,22 +53,15 @@
   <h3>Work Gallery</h3>
 
   <div class="gallery-grid">
+    {% if slug.work_gallery|length == 0 %}
+      <p>No work images available.</p>
+    {% endif %}
 
-    <div class="add-box">
-      <span>+</span>
+    {% for img_url in slug.work_gallery %}
+    <div class="gallery-item">
+      <img src="{{ img_url }}" alt="Work Image">
     </div>
-
-    <div class="add-box">
-      <span>+</span>
-    </div>
-
-    <div class="add-box">
-      <span>+</span>
-    </div>
-
-    <div class="add-box">
-      <span>+</span>
-    </div>
+    {% endfor %}
 
   </div>
 </div>
@@ -78,26 +69,48 @@
   <!-- Review Section -->
   <div class="section reviews">
     <h3>Customer Reviews</h3>
-
+    {% if slug.reviews|length == 0 %}
+      <p>No reviews yet.</p>
+    {% endif %}
+    {% for review in slug.reviews %}
     <div class="review-card">
-      <p class="review-name">Amit Sharma</p>
-      <p class="review-rating">⭐⭐⭐⭐⭐</p>
-      <p>Very professional and completed the work on time. Highly recommended!</p>
-    </div>
-
-    <div class="review-card">
-      <p class="review-name">Priya Sen</p>
-      <p class="review-rating">⭐⭐⭐⭐</p>
-      <p>Good service and polite behavior. Will hire again.</p>
-    </div>
+      <p class="reviewer-name"><strong>{{ review.reviewer_name }}</strong></p>
+      <p class="review-rating">⭐ {{ review.rating }}</p>
+      <p class="review-comment">{{ review.comment }}</p>
   </div>
+  {% endfor %}
+{% if is_owner %}
+  <a href="/worker/edit">
+    <button class="edit-btn">Edit Profile</button>
+  </a>
 
-  <div class="action-buttons">
-    <button class="chat-btn">Chat With Worker</button>
-    <button class="hire-btn">Hire Now</button>
-  </div>
+{% else %}
 
+  {% if user and user.role == "customer" %}
+
+    <button class="chat-btn" onclick="chatWithWorker('{{ slug.uid }}')">
+      Chat with {{ slug.name }}
+    </button>
+
+    <button class="hire-btn" onclick="hireWorker('{{ slug.uid }}')">
+      Hire {{ slug.name }}
+    </button>
+
+  {% else %}
+
+    <a href="/getstarted?next=/worker/{{ slug.uid }}">
+      <button class="chat-btn">Chat with {{ slug.name }}</button>
+    </a>
+
+    <a href="/getstarted?next=/worker/{{ slug.uid }}">
+      <button class="hire-btn">Hire {{ slug.name }}</button>
+    </a>
+
+  {% endif %}
+
+{% endif %}
 </div>
+<script src="{{ url_for('static', filename='js/worker_portfolio.js') }}"></script>
 
 </body>
-</html>
+{% endblock %}

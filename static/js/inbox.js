@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Auto open conversation if cid in URL
   const params = new URLSearchParams(window.location.search);
   const cid = params.get("cid");
-  if (cid) {
+  if (cid && window.conversations) {
     openChat(cid);
   }
 });
@@ -52,15 +52,15 @@ function renderSidebar(conversations) {
     const card = document.createElement("div");
     card.className = "worker-card";
 
-    const time = c.lastTimestamp
-      ? new Date(c.lastTimestamp.seconds * 1000).toLocaleTimeString([], {
+    const time = c.updatedAt
+      ? new Date(c.updatedAt.seconds * 1000).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit"
         })
       : "";
 
     card.innerHTML = `
-      <div class="avatar"></div>
+      <div class="avatar" style="background-image: url('${c.workerPhoto || '/static/images/default-avatar.png'}');"></div>
       <div>
         <h4>${c.workerName || "Worker"}</h4>
         <p>${c.lastMessage || ""}</p>
@@ -103,7 +103,7 @@ async function fetchMessages() {
   renderMessages(messages);
 }
 
-setInterval(fetchMessages, 2000);
+setInterval(fetchMessages, 6000);
 
 // -------------------------------
 // Render Messages
@@ -186,7 +186,7 @@ function renderTopPanel(conversation) {
 
   header.innerHTML = `
     <div class="chat-user">
-        <div class="avatar"></div>
+        <div class="avatar" style="background-image: url('${conversation.workerPhoto || '/static/images/default-avatar.png'}');"></div>
         <div>
             <h3>${conversation.workerName || "Worker"}</h3>
             <p>${conversation.lastMessage ? "Active Chat" : "Start Conversation"}</p>

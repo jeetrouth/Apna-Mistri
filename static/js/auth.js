@@ -24,8 +24,12 @@ async function sendTokenToBackend(user) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken })
     });
-
+    
     const data = await res.json();
+    if (data.redirect) {
+    window.location.href = data.redirect;
+    return;
+    }
 
     if (data.status === "new") {
       window.location.href = "/select-role";

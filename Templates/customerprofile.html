@@ -13,39 +13,46 @@
     <!-- Profile Header -->
     <div class="profile-header">
 
-        <!-- Man Logo beside Customer Name -->
-        <img src="Gemini_Generated_Image_iuf935iuf935iuf9.png" class="avatar">
-
         <div>
-            <h3>Customer Name</h3>
-            <p class="join">Joined: Jan 2024</p>
+            <h3>{{ user.name }}</h3>
+            <p class="join">Joined: {{ user.joined_date }}</p>
         </div>
+        <!-- Man Logo beside Customer Name -->
+        <div class="avatar-wrapper">
+        <img src="{{ user.photo_url }}" class="avatar" id="profilePreview">
+
+        <input type="file" id="photoInput" accept="image/*" hidden>
+
+        <button id="changePhotoBtn" class="photo-btn" style="display:none;">
+            Change Photo
+        </button>
+        </div>
+
     </div>
 
 
     <div class="section">Personal Information</div>
 
-    <label>Full Name</label>
-    <input type="text" value="Customer Name">
+        <label>Full Name</label>
+    <input type="text" id="name" value="{{ user.name }}" disabled>
 
     <label>Phone Number</label>
-    <input type="text" value="+91-9876543210">
+    <input type="text" id="phone" value="{{ user.phone }}" disabled>
 
     <label>Email Address</label>
-    <input type="email" value="customer@email.com">
+    <input id="email"   type="email" value="{{ user.email }}" disabled>
 
     <div class="grid">
         <div>
             <label>Address</label>
-            <textarea rows="4">123 Main Street, Salt Lake, Kolkata, 700091</textarea>
+            <textarea id="address" rows="4" disabled>{{ user.address.fulladdr }}</textarea>
         </div>
 
         <div>
             <label>City</label>
-            <input type="text" value="Kolkata">
-
+            <input id="city" type="text" value="{{ user.address.city }}" disabled>
             <label>PIN Code</label>
-            <input type="text" value="700091">
+            <input id="pincode" type="text" value="{{ user.address.pincode }}" disabled>
         </div>
     </div>
 

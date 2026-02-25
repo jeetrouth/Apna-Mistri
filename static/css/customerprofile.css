@@ -94,6 +94,18 @@ height:60px;
 border-radius:6px;
 background:#e0e0e0;
 }
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.photo-btn {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
 
 .join{
 font-size:14px;

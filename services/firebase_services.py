@@ -32,7 +32,6 @@ def add_user(uid,email,name,photo_url):
         "name": name,
         "email": email,
         "createdAt": firestore.SERVER_TIMESTAMP,
-        "hydration_enabled": False,
         "photo_url":photo_url,
         "role":None,
         "phone":None
@@ -192,7 +191,9 @@ def create_new_conversation(customer_id, worker_id):
     ref = db.collection("conversations").add({
         "participants": [customer_id, worker_id],
         "lastMessage": "",
-        "lastUpdated": firestore.SERVER_TIMESTAMP
+        "updatedAt": firestore.SERVER_TIMESTAMP,
+        "customerId": customer_id,
+        "workerId": worker_id
     })
     return {"conversationId":ref[1].id}     
 
@@ -202,7 +203,7 @@ def get_conversations_for_user(uid):
     chats = []
     for c in db.collection("conversations")\
         .where("participants", "array_contains", uid)\
-        .order_by("lastTimestamp", direction=firestore.Query.DESCENDING)\
+        .order_by("updatedAt", direction=firestore.Query.DESCENDING)\
         .stream():
 
         d = c.to_dict()
@@ -214,6 +215,7 @@ def get_conversations_for_user(uid):
         worker = db.collection("workers").document(other).get()
         if worker.exists:
             d["workerName"] = worker.to_dict().get("name")
+            d["workerPhoto"] = worker.to_dict().get("avatar_url")
 
         chats.append(d)
     return chats
@@ -250,3 +252,42 @@ def send_message(conversation_id, sender_id, text):
             "lastMessage": text,
             "updatedAt": firestore.SERVER_TIMESTAMP
         })  
+
+
+def get_profile_photo_url(uid):
+    user_doc = db.collection("users").document(uid).get()
+    if user_doc.exists:
+        return user_doc.to_dict().get("photo_url")
+    return None
+
+def get_worker_profile(uid):
+
+    user_doc = db.collection("users").document(uid).get()
+    worker_doc = db.collection("workers").document(uid).get()
+
+    if not user_doc.exists or not worker_doc.exists:
+        return None
+
+    user = user_doc.to_dict()
+    worker = worker_doc.to_dict()
+
+    return {
+        "uid": uid,
+        "name": user.get("name"),
+        "photo": user.get("photo_url"),
+
+        "trade": worker.get("trade"),
+        "experience": worker.get("experience"),
+        "location": worker.get("city"),
+
+        "rating": worker.get("rating", 0),
+        "review_count": worker.get("totalJobs", 0),
+
+        "about": worker.get("bio", ""),
+        "skills": worker.get("skills", []),
+        "availability": worker.get("availability", ""),
+        "price": worker.get("price", 0),
+
+        "work_gallery": worker.get("work_gallery", []),
+        "reviews": worker.get("reviews", [])
+    }

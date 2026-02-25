@@ -22,7 +22,10 @@ def landing():
 
 @app.route("/search")
 def search():
-    return render_template("search.html")
+    if not session["user"]:
+        return render_template("search.html")
+    
+    return render_template("search.html",user=session.get("user"))
 
 @app.route("/api/get_firebase_config", methods=['GET'])
 def get_firebase_config():
@@ -38,6 +41,9 @@ def get_firebase_config():
     return jsonify(firebase_config)
 @app.route("/getstarted")
 def getstarted():
+    next_url = request.args.get("next")
+    if next_url:
+        session["next"] = next_url
     return render_template("getstarted.html")
 
 @app.route("/firebase-login", methods=["POST"])
@@ -54,7 +60,7 @@ def firebase_login():
     photo = decoded.get("picture")
 
     doc=firebase_services.get_user_by_uid(uid)
-
+    next_url = session.pop("next", None)
     # NEW USER
     if not doc:
         firebase_services.add_user(uid,email,name,photo)
@@ -62,7 +68,8 @@ def firebase_login():
         session["user"]={
             "uid": uid,
             "name": name,
-            "photo_url": photo
+            "photo_url": photo,
+            "role": None
         }
 
         return {"status": "new"}
@@ -78,7 +85,10 @@ def firebase_login():
         }
 
 
+    if next_url:
+        return {"status": "existing", "role": role, "redirect": next_url}
     return {"status": "existing", "role": role}
+
 
 @app.route("/user/setup", methods=["GET", "POST"])
 def user_setup():
@@ -89,7 +99,7 @@ def user_setup():
     uid = session["user"]["uid"]
 
     if request.method == "GET":
-        return render_template("usersetup.html")
+        return render_template("usersetup.html", user=session["user"])
 
     # ---------- POST ----------
 
@@ -109,11 +119,7 @@ def user_setup():
     photo_url = None
 
     if photo:
-        from PIL import Image
-        from services.imagekit_services import upload_user_profile
-
-        img = Image.open(photo)
-        result = upload_user_profile(uid, img)
+        result = imagekit_services.upload_user_profile(uid, photo)
         photo_url = result["url"]
     data={
         "name": name,
@@ -123,31 +129,93 @@ def user_setup():
         "photo_url": photo_url}
     # Update users collection (customer profile lives here)
     firebase_services.update_user_profile(uid,data)
-
+    session["user"]["role"]="customer"
+    session.modified = True
     return {"success": True}
-
 
 
 @app.route("/api/update-profile", methods=["POST"])
 def update_profile():
 
-    if "user" not in session:
-        return {"success": False}, 401
-
     uid = session["user"]["uid"]
-    data = request.get_json()
-    firebase_services.update_user_profile(uid, data)
+
+    name = request.form.get("name")
+    phone = request.form.get("phone")
+    email = request.form.get("email")
+    address = request.form.get("address")
+    city = request.form.get("city")
+    pincode = request.form.get("pincode")
+
+    photo = request.files.get("photo")
+
+    photo_url = None
+    if photo:
+        upload = imagekit_services.upload_user_profile(uid, photo)
+        photo_url = upload
+    else:
+        photo_url = imagekit_services.get_profile_photo_url(uid)
+    firebase_services.update_user_profile(uid,{
+        "name": name,
+        "phone": phone,
+        "address": {
+            "fulladdr": address,
+            "city": city,
+            "pincode": pincode
+        },
+        "photo_url": photo_url,
+        "email": email
+    })
+
+    if photo_url:
+        session["user"]["photo_url"] = photo_url
+        session.modified = True
 
     return {"success": True}
 
-@app.route("/profile/<slug>")
-def worker_profile(slug):
-    return render_template("worker_profile.html", slug=slug)
+@app.route("/profile")
+def profile():
+    if not session["user"]:
+        return redirect("/")
+    role=session["user"]["role"]
+    uid=session["user"]["uid"]
+    if role=="worker":
+        return redirect(f"/worker/{uid}")
+    else:
+        return redirect("/profile/customer") 
+
+@app.route("/profile/customer")
+def customer_profile():
+    if not session["user"]:
+        return redirect("/")
+
+    uid = session["user"]["uid"]
+    user = firebase_services.get_user_by_uid(uid)    
+    return render_template("customerprofile.html", user=user)
+
+
+@app.route("/worker/<uid>")
+def worker_portfolio(uid):
+
+    worker = firebase_services.get_worker_profile(uid)
+
+    if not worker:
+        abort(404)
+
+    current_uid = session.get("user", {}).get("uid")
+
+    is_owner = current_uid == uid
+
+    return render_template(
+        "worker_portfolio.html",
+        slug=worker,
+        is_owner=is_owner,
+        user=session.get("user")
+    )
 
 # ======================
 # Role Setup (First Time)
 # ======================
-@app.route("/select-role", methods=["GET", "POST"])
+app.route("/select-role", methods=["GET", "POST"])
 def select_role():
 
     # Must be logged in
@@ -195,7 +263,7 @@ def select_role():
             "skills": []
         })
 
-    session["role"] = role
+    session["user"]["role"] = role
 
     return {"success": True}
 
@@ -276,11 +344,17 @@ def dashboard():
     else:
         return redirect("/customer/dashboard")
 
+# ================= WORKER DASHBOARD PAGE =================
+
 @app.route("/worker/dashboard")
 def worker_dashboard():
-    
-    return render_template("worker_dashboard.html")
+    if not session.get("user") or session["user"]["role"] != "worker":
+        return redirect("/getstarted")
 
+    return render_template(
+        "worker_dashboard.html",
+        user=session["user"]
+    )
 @app.route("/customer/dashboard")
 def customer_dashboard():
     return render_template("customer_dashboard.html",user=session["user"])
@@ -385,11 +459,11 @@ def inbox():
 
 @app.route("/about")
 def about():
-    return render_template("about.html")
+    return render_template("about.html",user=session.get("user"))
 
 @app.route("/how-it-works")
 def how_it_works():
-    return render_template("how_it_works.html")
+    return render_template("how_it_works.html",user=session.get("user"))
 
 # ======================
 # Logout

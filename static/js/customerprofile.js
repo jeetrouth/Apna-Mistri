@@ -1,44 +1,60 @@
-
 const inputs = document.querySelectorAll("input, textarea");
 const editBtn = document.getElementById("editBtn");
 const saveBtn = document.getElementById("saveBtn");
 
-// Start in VIEW mode
+const photoInput = document.getElementById("photoInput");
+const changePhotoBtn = document.getElementById("changePhotoBtn");
+const preview = document.getElementById("profilePreview");
+
+let selectedPhoto = null;
+
+// View mode
 inputs.forEach(i => i.disabled = true);
 
-// Edit click
+// Enable edit
 editBtn.addEventListener("click", () => {
   inputs.forEach(i => i.disabled = false);
   editBtn.style.display = "none";
   saveBtn.style.display = "block";
+  changePhotoBtn.style.display = "block";
 });
 
-// Save click
-saveBtn.addEventListener("click", () => {
+// Click change photo
+changePhotoBtn.addEventListener("click", () => {
+  photoInput.click();
+});
 
-  const payload = {
-    name: document.querySelector("input[type=text]").value,
-    phone: document.querySelectorAll("input")[1].value,
-    email: document.querySelector("input[type=email]").value,
-    address: {city: document.querySelectorAll("input")[2].value, fulladdr: document.querySelector("textarea").value,pincode: document.querySelectorAll("input")[3].value}
-    
-  };
+// Preview image
+photoInput.addEventListener("change", e => {
+  selectedPhoto = e.target.files[0];
+  preview.src = URL.createObjectURL(selectedPhoto);
+});
 
-  fetch("/api/update-profile", {
+// Save
+saveBtn.addEventListener("click", async () => {
+
+  const formData = new FormData();
+
+  formData.append("name", document.getElementById("name").value);
+  formData.append("phone", document.getElementById("phone").value);
+  formData.append("email", document.getElementById("email").value);
+  formData.append("address", document.getElementById("address").value);
+  formData.append("city", document.getElementById("city").value);
+  formData.append("pincode", document.getElementById("pincode").value);
+
+  if (selectedPhoto) {
+    formData.append("photo", selectedPhoto);
+  }
+
+  const res = await fetch("/api/update-profile", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if(data.success){
-      alert("Profile Updated");
-      inputs.forEach(i => i.disabled = true);
-      saveBtn.style.display = "none";
-      editBtn.style.display = "block";
-    }
+    body: formData
   });
 
+  const data = await res.json();
+
+  if (data.success) {
+    alert("Profile Updated");
+    location.reload();
+  }
 });

@@ -1,5 +1,4 @@
 from imagekitio import ImageKit
-from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
 import os
 import io
 import base64
@@ -7,13 +6,14 @@ from PIL import Image
 
 imagekit = ImageKit(
     private_key=os.environ.get("IMAGEKIT_PRIVATE_KEY"),
-    public_key=os.environ.get("IMAGEKIT_PUBLIC_KEY"),
-    url_endpoint=os.environ.get("IMAGEKIT_URL_ENDPOINT")
+    #public_key=os.environ.get("IMAGEKIT_PUBLIC_KEY"),
+    #url_endpoint=os.environ.get("IMAGEKIT_URL_ENDPOINT")
 )
 
 # -------------------------
 # Helper: upload PIL image
 # -------------------------
+'''
 def upload_pil_image(pil_image, file_name, folder_path):
 
     try:
@@ -83,21 +83,26 @@ def upload_job_image(worker_uid, job_id, pil_image, stage="before"):
         folder
     )
 
-
+'''
 # -------------------------
 # Customer profile photo
 # -------------------------
 
-def upload_user_profile(uid, pil_image):
-
-    folder = f"Home/ApnaMistri/users/{uid}"
-
-    return upload_pil_image(
-        pil_image,
-        "profile.jpg",
-        folder
+def upload_user_profile(uid, file):
+    file_to_up=file.read()
+    folder= f"Home/ApnaMistri/users/{uid}"
+    filename = f"profile_{uid}.jpg"
+    upload= imagekit.files.upload(
+        file=file_to_up,
+        file_name=filename,
+        folder=folder
     )
+    print("✅ Upload successful:", upload)
+    return upload.url
 
+
+
+    
 
 # -------------------------
 # Delete file
