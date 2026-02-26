@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, abort, jsonify
 from services import firebase_services, imagekit_services
 from firebase_admin import auth
-
+import requests
 from PIL import Image
 import os
 app = Flask(__name__)
@@ -22,7 +22,7 @@ def landing():
 
 @app.route("/search")
 def search():
-    if not session["user"]:
+    if not session.get("user"):
         return render_template("search.html")
     
     return render_template("search.html",user=session.get("user"))
@@ -569,9 +569,92 @@ def create_job():
 
     return redirect("/customer/dashboard")
 
+@app.route("/api/discover-workers", methods=["POST"])
+def api_discover_workers():
+
+    data = request.json
+
+    try:
+        lat = float(data["lat"])
+        lng = float(data["lng"])
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid coordinates"}), 400
+
+    trade = data.get("trade")
+    radius = int(data.get("radius", 10))
+
+    # ==========================================
+    # REVERSE GEOCODE USING NOMINATIM
+    # ==========================================
+
+    try:
+        url = "https://nominatim.openstreetmap.org/reverse"
+
+        params = {
+            "lat": lat,
+            "lon": lng,
+            "format": "json",
+            "addressdetails": 1
+        }
+
+        headers = {
+            "User-Agent": "ApnaMistri/1.0"
+        }
+
+        response = requests.get(url, params=params, headers=headers, timeout=5)
+
+        if response.status_code != 200:
+            return jsonify({"error": "Geocoding failed"}), 500
+
+        location_data = response.json()
+        address = location_data.get("address", {})
+
+        # Nominatim city fallback logic
+        city = address.get("city")
+        print("Detected city:", city)
+        if not city:
+            return jsonify({"error": "City not found"}), 400
+
+    except Exception as e:
+        print("Reverse geocode error:", e)
+        return jsonify({"error": "Location detection failed"}), 500
+
+    # ==========================================
+    # DISCOVER WORKERS
+    # ==========================================
+
+    workers = firebase_services.discover_workers(
+        city=city,
+        user_lat=lat,
+        user_lng=lng,
+        trade=trade,
+        max_distance=radius
+    )
+
+    return jsonify(workers), 200
 
 
+@app.route("/api/worker/update-location", methods=["POST"])
+def update_worker_location():
 
+    if not session.get("user") or session["user"]["role"] != "worker":
+        return {"error": "Unauthorized"}, 401
+
+    if session["user"]["role"] != "worker":
+        return {"error": "Forbidden"}, 403
+
+    uid = session["user"]["uid"]
+    data = request.json
+
+    try:
+        lat = float(data["lat"])
+        lng = float(data["lng"])
+    except:
+        return {"error": "Invalid coordinates"}, 400
+
+    firebase_services.update_worker_location(uid, lat, lng)
+
+    return {"success": True}, 200
 # ======================
 # Logout
 # ======================

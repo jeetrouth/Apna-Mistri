@@ -1,4 +1,5 @@
 import firebase_admin
+import math
 from firebase_admin import credentials, firestore, auth, storage
 import os,json
 from flask import jsonify
@@ -496,3 +497,73 @@ def create_job(job):
         "createdAt": firestore.SERVER_TIMESTAMP
     }
     db.collection("jobs").add(job)    
+
+
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lon2 - lon1)
+
+    a = (math.sin(dLat/2) ** 2 +
+         math.cos(math.radians(lat1)) *
+         math.cos(math.radians(lat2)) *
+         math.sin(dLon/2) ** 2)
+
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * c
+
+
+def discover_workers(city, user_lat, user_lng, trade=None, max_distance=None, verified=None):
+
+    query = db.collection("workers")
+
+    if trade:
+        query = query.where("trade", "==", trade.lower())
+
+    if verified is not None:
+        query = query.where("verified", "==", verified)
+
+    docs = query.stream()
+
+    workers = []
+
+    for doc in docs:
+        w = doc.to_dict()
+
+        if not w.get("location"):
+            continue
+
+        w_lat = w["location"]["lat"]
+        w_lng = w["location"]["lng"]
+        print(f"Worker {w.get('name')} is at ({w_lat}, {w_lng})")
+        distance = haversine(user_lat, user_lng, w_lat, w_lng)
+
+        if max_distance and distance > max_distance:
+            continue
+
+        workers.append({
+            "uid": doc.id,
+            "name": w.get("name"),
+            "trade": w.get("trade"),
+            "distance": round(distance, 2),
+            "lat": w_lat,
+            "lng": w_lng,
+            "photo": w.get("avatar_url"),
+            "rating": w.get("rating", 0),
+            "verified": w.get("verified", False),
+            "price": w.get("price", 0)
+        })
+
+    return workers
+
+def update_worker_location(uid, lat, lng):
+
+    db.collection("workers").document(uid).update({
+        "location": {
+            "lat": lat,
+            "lng": lng
+        },
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
