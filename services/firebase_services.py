@@ -482,10 +482,8 @@ def get_worker_by_uid(uid):
     }
 
 
-# ================= CREATE JOB =================
-
 def create_job(job):
-    job_data = {
+    job = {
         "customerId": job.get("customerId"),
         "workerId": job.get("workerId"),
         "jobTitle": job.get("jobTitle"),
@@ -498,8 +496,7 @@ def create_job(job):
         "status": "pending",
         "createdAt": firestore.SERVER_TIMESTAMP
     }
-
-    db.collection("jobs").add(job_data)
+    db.collection("jobs").add(job)    
 
 
 # ================= INLINE UPDATE FUNCTIONS =================
@@ -545,8 +542,6 @@ def update_worker_avatar(uid, avatar_url):
     db.collection("users").document(uid).update({
         "photo_url": avatar_url
     })
-
-
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -615,3 +610,12 @@ def update_worker_location(uid, lat, lng):
         },
         "updatedAt": firestore.SERVER_TIMESTAMP
     })
+def get_job_by_id(job_id):
+    job_doc = db.collection("jobs").document(job_id).get()
+
+    if not job_doc.exists:
+        return "Job not found", 404
+
+    job = job_doc.to_dict()
+    job["id"] = job_id
+    return job

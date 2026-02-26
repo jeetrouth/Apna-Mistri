@@ -633,6 +633,48 @@ def api_discover_workers():
 
     return jsonify(workers), 200
 
+@app.route("/worker/update-profile", methods=["POST"])
+def update_worker_profile_inline():
+
+    if not session.get("user") or session["user"]["role"] != "worker":
+        return {"success": False}, 401
+
+    uid = session["user"]["uid"]
+    data = request.get_json()
+    field = data.get("field")
+
+    if field == "bio":
+        firebase_services.update_worker_bio(uid, data.get("value"))
+
+    elif field == "name":
+        firebase_services.update_worker_name(uid, data.get("value"))
+
+    elif field == "skills":
+        firebase_services.update_worker_skills(uid, data.get("value"))
+
+    elif field == "availability":
+        firebase_services.update_worker_availability(
+            uid,
+            data.get("availability"),
+            data.get("working_hours")
+        )
+
+    return {"success": True}
+@app.route("/job/work-update/<job_id>")
+def work_update_page(job_id):
+
+    if not user.get("user"):
+        return redirect("/getstarted")
+
+    uid = session["user"]["uid"]
+    role = session["user"]["role"]
+
+    job = firebase_services.get_job_by_id(job_id)
+    return render_template(
+        "Workupdate.html",
+        job=job,
+        role=role
+    )
 
 @app.route("/api/worker/update-location", methods=["POST"])
 def update_worker_location():
@@ -671,33 +713,6 @@ def logout():
 @app.errorhandler(403)
 def forbidden(e):
     return "Forbidden", 403
-@app.route("/worker/update-profile", methods=["POST"])
-def update_worker_profile_inline():
-
-    if not session.get("user") or session["user"]["role"] != "worker":
-        return {"success": False}, 401
-
-    uid = session["user"]["uid"]
-    data = request.get_json()
-    field = data.get("field")
-
-    if field == "bio":
-        firebase_services.update_worker_bio(uid, data.get("value"))
-
-    elif field == "name":
-        firebase_services.update_worker_name(uid, data.get("value"))
-
-    elif field == "skills":
-        firebase_services.update_worker_skills(uid, data.get("value"))
-
-    elif field == "availability":
-        firebase_services.update_worker_availability(
-            uid,
-            data.get("availability"),
-            data.get("working_hours")
-        )
-
-    return {"success": True}
 
 # ======================
 # Run
