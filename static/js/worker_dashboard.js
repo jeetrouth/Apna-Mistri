@@ -285,6 +285,7 @@ async function loadWorkerDashboard() {
         const data = await res.json();
 
         console.log("Worker dashboard:", data);
+        renderWorkerStats(data);
         renderRecentChats(data.recent_chats || []);
         renderIncomingJobs(data.incoming_jobs || []);
         renderOngoingJobs(data.ongoing_jobs || []);
@@ -370,7 +371,22 @@ function renderHistory(history) {
         `;
     });
 }
+/* ================= WORKER STATS ================= */
 
+function renderWorkerStats(data) {
+
+    const activeEl = document.getElementById("activeJobsCount");
+    const ratingEl = document.getElementById("workerRating");
+
+    if (activeEl) {
+        activeEl.textContent = data.active_jobs_count || 0;
+    }
+
+    if (ratingEl) {
+        const rating = data.rating || 0;
+        ratingEl.textContent = Number(rating).toFixed(1);
+    }
+}
 /* ================= ACTION BUTTONS ================= */
 
 function acceptJob(id) {

@@ -481,8 +481,10 @@ def get_worker_by_uid(uid):
     }
 
 
+# ================= CREATE JOB =================
+
 def create_job(job):
-    job = {
+    job_data = {
         "customerId": job.get("customerId"),
         "workerId": job.get("workerId"),
         "jobTitle": job.get("jobTitle"),
@@ -495,4 +497,50 @@ def create_job(job):
         "status": "pending",
         "createdAt": firestore.SERVER_TIMESTAMP
     }
-    db.collection("jobs").add(job)    
+
+    db.collection("jobs").add(job_data)
+
+
+# ================= INLINE UPDATE FUNCTIONS =================
+
+def update_worker_bio(uid, bio):
+    db.collection("workers").document(uid).update({
+        "bio": bio,
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
+
+
+def update_worker_name(uid, name):
+    db.collection("workers").document(uid).update({
+        "name": name,
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
+
+    # Also update in users collection
+    db.collection("users").document(uid).update({
+        "name": name
+    })
+
+
+def update_worker_skills(uid, skills):
+    db.collection("workers").document(uid).update({
+        "skills": skills,
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
+
+
+def update_worker_availability(uid, availability, working_hours):
+    db.collection("workers").document(uid).update({
+        "availability": availability,
+        "working_hours": working_hours,
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
+def update_worker_avatar(uid, avatar_url):
+    db.collection("workers").document(uid).update({
+        "avatar_url": avatar_url,
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
+
+    db.collection("users").document(uid).update({
+        "photo_url": avatar_url
+    })

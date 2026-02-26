@@ -184,3 +184,13 @@ body{
     grid-template-columns:repeat(2,1fr);
   }
 }
+.hidden {
+  display: none;
+}
+
+.edit-field {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 5px;
+}

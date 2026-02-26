@@ -588,6 +588,33 @@ def logout():
 @app.errorhandler(403)
 def forbidden(e):
     return "Forbidden", 403
+@app.route("/worker/update-profile", methods=["POST"])
+def update_worker_profile_inline():
+
+    if not session.get("user") or session["user"]["role"] != "worker":
+        return {"success": False}, 401
+
+    uid = session["user"]["uid"]
+    data = request.get_json()
+    field = data.get("field")
+
+    if field == "bio":
+        firebase_services.update_worker_bio(uid, data.get("value"))
+
+    elif field == "name":
+        firebase_services.update_worker_name(uid, data.get("value"))
+
+    elif field == "skills":
+        firebase_services.update_worker_skills(uid, data.get("value"))
+
+    elif field == "availability":
+        firebase_services.update_worker_availability(
+            uid,
+            data.get("availability"),
+            data.get("working_hours")
+        )
+
+    return {"success": True}
 
 # ======================
 # Run
