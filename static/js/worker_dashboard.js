@@ -452,7 +452,85 @@ function renderRecentChats(chats) {
         `;
     });
 }
+/* ================= WORK LOCATION UPDATE ================= */
 
+let workerMap;
+let newLat = null;
+let newLng = null;
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const modal = document.getElementById("locationModal");
+    const openBtn = document.getElementById("updateLocationBtn");
+    const closeBtn = document.getElementById("closeLocationModal");
+    const saveBtn = document.getElementById("saveWorkerLocation");
+
+    if(openBtn){
+        openBtn.addEventListener("click", function(){
+            modal.style.display = "flex";
+
+            setTimeout(() => {
+
+                if(!workerMap){
+                    workerMap = L.map("workerLocationMap")
+                        .setView([22.5726, 88.3639], 13);
+
+                    L.tileLayer(
+                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        { maxZoom: 19 }
+                    ).addTo(workerMap);
+
+                    workerMap.on("click", function(e){
+                        newLat = e.latlng.lat;
+                        newLng = e.latlng.lng;
+
+                        L.marker([newLat, newLng])
+                            .addTo(workerMap)
+                            .bindPopup("Selected Location")
+                            .openPopup();
+                    });
+                }
+
+                workerMap.invalidateSize();
+
+            },200);
+        });
+    }
+
+    if(closeBtn){
+        closeBtn.addEventListener("click", function(){
+            modal.style.display = "none";
+        });
+    }
+
+    if(saveBtn){
+        saveBtn.addEventListener("click", async function(){
+
+            if(!newLat || !newLng){
+                alert("Please select a location on map.");
+                return;
+            }
+
+            const res = await fetch("/api/worker/update-location",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    lat: newLat,
+                    lng: newLng
+                })
+            });
+
+            if(res.ok){
+                alert("Location Updated Successfully ✅");
+                modal.style.display = "none";
+            } else {
+                alert("Failed to update location");
+            }
+
+        });
+    }
+
+});
 /* ================= AUTO LOAD ================= */
 
 document.addEventListener("DOMContentLoaded", loadWorkerDashboard);

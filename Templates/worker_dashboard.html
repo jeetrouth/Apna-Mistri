@@ -20,6 +20,10 @@
             <span class="slider"></span>
         </label>
         <span id="statusText">online</span>
+         <!-- NEW BUTTON -->
+        <button id="updateLocationBtn" class="location-btn">
+            📍 Update Work Location
+        </button>
     </div>
 </section>
 
@@ -242,7 +246,22 @@
 
 </div>
 
+<!-- ===== LOCATION MODAL ===== -->
+<div id="locationModal" class="calendar-modal">
+    <div class="calendar-content">
+        <h3>Update Work Location</h3>
+        <div id="workerLocationMap" style="height:400px;"></div>
+        <button id="saveWorkerLocation" class="btn primary">
+            Save Location
+        </button>
+        <span class="close-calendar" id="closeLocationModal">&times;</span>
+    </div>
+</div>
 
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../static/js/worker_dashboard.js"></script>
 
 </body>
