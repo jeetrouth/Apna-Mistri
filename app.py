@@ -404,10 +404,15 @@ def worker_requests():
 def worker_job_action(job_id, action):
 
     uid = session["user"]["uid"]
+    try:
 
-    firebase_services.worker_job_action(uid, job_id, action)
+        firebase_services.worker_job_action(uid, job_id, action)
 
-    return {"success": True}    
+    except Exception as e:
+        print("Error in worker_job_action:", e)
+        return {"error": str(e)}, 500
+
+    return {"success": True} , 200   
 
 
 @app.route("/api/worker/<uid>")

@@ -338,8 +338,11 @@ function renderOngoingJobs(jobs) {
     const job = jobs[0];
 
     box.innerHTML = `
-        <h4>${job.work_type}</h4>
-        <p>${job.description}</p>
+        <h4>${job.jobTitle}</h4>
+        <p>${job.description}</p>\
+        <p><strong>Location:</strong> ${job.location}</p>
+        <p><strong>Customer:</strong> ${job.customerName}</p>
+        
 
         <div class="job-actions">
             <button class="outline">Details</button>
@@ -371,17 +374,31 @@ function renderHistory(history) {
 /* ================= ACTION BUTTONS ================= */
 
 function acceptJob(id) {
-    fetch(`/api/job/${id}/accept`, { method: "POST" });
+    res= fetch(`/api/worker/job/${id}/accept`, { method: "POST" });
+    if(res.ok) {
+        loadWorkerDashboard();
+        window.location.href = `/dashboard`;
+    }
 }
 
 function declineJob(id) {
-    fetch(`/api/job/${id}/decline`, { method: "POST" });
+    res= fetch(`/api/worker/job/${id}/decline`, { method: "POST" });
+    if(res.ok) {
+        loadWorkerDashboard();
+        window.location.href = `/dashboard`;
+    }
 }
 
 function completeJob(id) {
-    fetch(`/api/job/${id}/complete`, { method: "POST" });
+    res= fetch(`/api/worker/job/${id}/complete`, { method: "POST" });
+    if(res.ok) {
+        loadWorkerDashboard();
+        window.location.href = `/dashboard`;
+    }
 }
-
+function openChat(chatId) {
+    window.location.href = `/inbox?cid=${chatId}`;
+}
 function renderRecentChats(chats) {
     const container = document.getElementById("recentChatsContainer");
     if (!container) return;

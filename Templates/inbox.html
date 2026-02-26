@@ -38,7 +38,7 @@
                         
                     </div>
                     <!-- GREEN BOOK BUTTON -->
-                    <button class="book-btn">Hire Now</button>
+                    
                 </div>
 
                 <!-- Messages -->
@@ -61,7 +61,8 @@
 
 </section>
 <script>
-  window.currentUserId = "{{ user['uid'] }}";
+    window.currentUserId = "{{ session['user']['uid'] }}";
+    window.currentUserRole = "{{ session['user']['role'] }}";
 </script>
 <script src="{{ url_for('static', filename='js/inbox.js') }}"></script>
 

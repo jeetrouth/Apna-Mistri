@@ -193,17 +193,23 @@ function renderTopPanel(conversation) {
     return;
   }
 
+  const isCustomer = window.currentUserRole === "customer";
+
   header.innerHTML = `
     <div class="chat-user">
         <div class="avatar" style="background-image: url('${conversation.photo || '/static/images/default-avatar.png'}');"></div>
         <div>
-            <h3>${conversation.name || "Worker"}</h3>
+            <h3>${conversation.name || "User"}</h3>
             <p>${conversation.lastMessage ? "Active Chat" : "Start Conversation"}</p>
         </div>
     </div>
 
-    <button class="book-btn" onclick="hireWorker('${conversation.workerId}')">
-        Hire Now
-    </button>
+    ${
+      isCustomer
+        ? `<button class="book-btn" onclick="hireWorker('${conversation.workerId}')">
+              Hire Now
+           </button>`
+        : ""
+    }
   `;
 }

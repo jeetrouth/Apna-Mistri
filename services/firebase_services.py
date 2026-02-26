@@ -320,19 +320,19 @@ def get_worker_dashboard(uid):
 
     worker = worker_doc.to_dict()
 
-    # ================= ACTIVE JOBS =================
-    active_jobs_query = (
+    # ================= ongoing JOBS =================
+    ongoing_jobs_query = (
         db.collection("jobs")
         .where("workerId", "==", uid)
         .where("status", "in", ["accepted", "in_progress"])
         .stream()
     )
 
-    active_jobs = []
-    for doc in active_jobs_query:
+    ongoing_jobs = []
+    for doc in ongoing_jobs_query:
         job = doc.to_dict()
         job["id"] = doc.id
-        active_jobs.append(job)
+        ongoing_jobs.append(job)
 
     # ================= INCOMING JOBS =================
     incoming_query = (
@@ -365,7 +365,7 @@ def get_worker_dashboard(uid):
 
     # ================= RECENT CHATS =================
     chat_query = (
-        db.collection("chats")
+        db.collection("conversations")
         .where("participants", "array_contains", uid)
         .order_by("updatedAt", direction=firestore.Query.DESCENDING)
         .limit(5)
@@ -403,10 +403,11 @@ def get_worker_dashboard(uid):
     return {
         "name": worker.get("name"),
         "rating": worker.get("rating", 0),
-        "active_jobs": active_jobs,
+        "ongoing_jobs": ongoing_jobs,
         "incoming_jobs": incoming_jobs,
         "job_history": history,
-        "recent_chats": recent_chats
+        "recent_chats": recent_chats,
+        "active_jobs_count": len(ongoing_jobs)
     }
 def update_worker_online(uid, online):
 
@@ -457,10 +458,11 @@ def get_worker_requests(uid):
 
 def worker_job_action(uid, job_id, action):
 
-    status = "active" if action == "accept" else "declined"
+    status = "accepted" if action == "accept" else "declined"
 
     db.collection("jobs").document(job_id).update({
-        "status": status
+        "status": status,
+        "updatedAt": firestore.SERVER_TIMESTAMP
     })
 
 
