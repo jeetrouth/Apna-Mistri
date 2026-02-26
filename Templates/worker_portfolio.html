@@ -9,10 +9,17 @@
 <div class="portfolio-card">
 
   <div class="top-profile">
-    <img src="{{ slug.photo or url_for('static', filename='images/handshake.jpeg') }}" class="avatar">
-    
+    <img src="{{ slug.photo or url_for('static', filename='images/handshake.jpeg') }}"
+     class="avatar"
+     id="avatarImage">
+
+<input type="file" id="avatarInput" class="hidden">
     <div class="profile-details">
-      <h2>{{ slug.name }}</h2>
+       <h2 id="nameText">{{ slug.name }}</h2>
+  <input type="text"
+         id="nameInput"
+         class="edit-field hidden"
+         value="{{ slug.name }}">
       <p class="rating">⭐ {{slug.rating}} ({{slug.review_count}} reviews)</p>
       <p>{{ slug.trade }} • {{slug.experience}} Years Experience</p>
       <p class="location">📍 {{slug.location}}</p>
@@ -21,23 +28,61 @@
 
   <div class="section">
     <h3>About</h3>
-    <p>{{slug.about}}</p>
+    <!-- Display Mode -->
+  <p id="aboutText">{{ slug.about }}</p>
+
+  <!-- Edit Mode -->
+  <textarea id="aboutInput" class="edit-field hidden">{{ slug.about }}</textarea>
   </div>
 
   <div class="section">
-    <h3>Skills</h3>
-    <div class="tags">
+  <h3>Skills</h3>
+
+  <!-- Display Mode -->
+  <div class="tags" id="skillsDisplay">
+    {% for skill in slug.skills %}
+    <span class="tag">{{ skill }}</span>
+    {% endfor %}
+  </div>
+
+  <!-- Edit Mode -->
+  <div id="skillsEdit" class="hidden">
+
+    <div id="skillsContainer">
       {% for skill in slug.skills %}
-      <span class="tag">{{ skill }}</span>
+      <div class="skill-item">
+        <input type="text" value="{{ skill }}">
+        <button type="button" onclick="removeSkill(this)">❌</button>
+      </div>
       {% endfor %}
     </div>
+
+    <button type="button" onclick="addSkill()">Add Skill</button>
+
   </div>
+</div>
 
   <div class="section availability">
     <h3>Availability</h3>
-    <p><strong>Available Days:</strong> {{slug.available_days}}</p>
-    <p><strong>Working Hours:</strong> {{slug.working_hours}}</p>
+    <!-- Display Mode -->
+  <p id="availabilityText">
+    <strong>Available Days:</strong> {{slug.availability}} <br>
+    <strong>Working Hours:</strong> {{slug.working_hours}}
+  </p>
+
+  <!-- Edit Mode -->
+  <div id="availabilityEdit" class="hidden">
+    <input type="text"
+           id="availabilityInput"
+           class="edit-field"
+           value="{{slug.availability}}">
+
+    <input type="text"
+           id="workingHoursInput"
+           class="edit-field"
+           value="{{slug.working_hours}}">
   </div>
+</div>
 
   <!-- <div class="section">
     <h3>Work Gallery</h3>
@@ -80,9 +125,8 @@
   </div>
   {% endfor %}
 {% if is_owner %}
-  <a href="/worker/edit">
-    <button class="edit-btn">Edit Profile</button>
-  </a>
+ <button class="edit-btn" onclick="enableEditMode()">Edit Profile</button>
+<button class="save-btn hidden" onclick="saveProfile()">Save Changes</button>
 
 {% else %}
 

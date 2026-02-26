@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% extends "base.html" %}
+{% block content %}
     <meta charset="UTF-8">
     <title>Create Job Request</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/create_job.css') }}">
-</head>
 
 <body>
 
@@ -32,10 +30,6 @@
         <div class="worker-mini-info">
             <h4 id="workerNameDisplay">worker name</h4>
             <span class="worker-skill">job type</span>
-
-            <div class="verified-row">
-                ✔ Verified & Trusted
-            </div>
         </div>
 
     </div>
@@ -228,4 +222,4 @@
 <script src="{{ url_for('static', filename='js/create_job.js') }}"></script>
 
 </body>
-</html>
+{% endblock %}
